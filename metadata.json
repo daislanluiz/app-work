@@ -1,0 +1,7 @@
+{
+  "name": "ServiceFlow",
+  "description": "A modern, dark-mode service marketplace for professionals to showcase portfolios, connect, and interact.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
