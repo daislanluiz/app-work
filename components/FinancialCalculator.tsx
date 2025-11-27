@@ -1,13 +1,14 @@
-
 import React, { useState, useEffect } from 'react';
 import { DollarSign, TrendingUp, Package, Truck, Percent, Briefcase } from 'lucide-react';
 
 export const FinancialCalculator: React.FC = () => {
   const [productName, setProductName] = useState('');
-  const [baseCost, setBaseCost] = useState<number | ''>('');
-  const [deliveryCost, setDeliveryCost] = useState<number | ''>('');
-  const [taxRate, setTaxRate] = useState<number | ''>(10);
-  const [profitMargin, setProfitMargin] = useState<number | ''>(30);
+  
+  // Use string for inputs to allow empty state without forcing "0"
+  const [baseCostStr, setBaseCostStr] = useState('');
+  const [deliveryCostStr, setDeliveryCostStr] = useState('');
+  const [taxRateStr, setTaxRateStr] = useState('10');
+  const [profitMarginStr, setProfitMarginStr] = useState('30');
   const [reinvestmentRate, setReinvestmentRate] = useState(25); // Default 25%
 
   const [results, setResults] = useState({
@@ -20,23 +21,16 @@ export const FinancialCalculator: React.FC = () => {
   });
 
   useEffect(() => {
-    const cost = Number(baseCost) || 0;
-    const delivery = Number(deliveryCost) || 0;
-    const tax = Number(taxRate) || 0;
-    const margin = Number(profitMargin) || 0;
+    const cost = parseFloat(baseCostStr) || 0;
+    const delivery = parseFloat(deliveryCostStr) || 0;
+    const tax = parseFloat(taxRateStr) || 0;
+    const margin = parseFloat(profitMarginStr) || 0;
 
-    // Logic: 
-    // Total Direct Cost = Base Cost + Delivery
-    // We want a Margin based on the Cost. 
-    // Sales Price = (Total Direct Cost) * (1 + Margin/100)
-    // Tax Amount = Sales Price * (Tax/100) -> Assuming Sales Tax added on top? 
-    // Or Tax included in price? Let's assume Tax is a cost of doing business deducted from revenue.
-    
     // Simplified Pricing Model:
     // 1. Calculate Costs
     const totalDirectCost = cost + delivery;
     
-    // 2. Add Profit Margin
+    // 2. Add Profit Margin (Markup on Cost)
     const profitAmountRaw = totalDirectCost * (margin / 100);
     const priceBeforeTax = totalDirectCost + profitAmountRaw;
     
@@ -45,9 +39,8 @@ export const FinancialCalculator: React.FC = () => {
     const finalPrice = priceBeforeTax + taxAmount;
 
     // 4. Calculate Net Profit (Real Profit)
-    // Revenue = Final Price
-    // Expenses = Cost + Delivery + Tax
-    // Profit = Revenue - Expenses
+    // Profit = Revenue - Expenses (Cost + Delivery + Tax)
+    // Using finalPrice as Revenue
     const netProfit = finalPrice - totalDirectCost - taxAmount;
 
     // 5. Reinvestment
@@ -55,14 +48,14 @@ export const FinancialCalculator: React.FC = () => {
     const takeHome = netProfit - reinvestment;
 
     setResults({
-      finalPrice,
-      taxAmount,
+      finalPrice: finalPrice > 0 ? finalPrice : 0,
+      taxAmount: taxAmount > 0 ? taxAmount : 0,
       totalCost: totalDirectCost,
-      netProfit,
-      reinvestmentAmount: reinvestment,
-      ownerTakeHome: takeHome
+      netProfit: netProfit > 0 ? netProfit : 0,
+      reinvestmentAmount: reinvestment > 0 ? reinvestment : 0,
+      ownerTakeHome: takeHome > 0 ? takeHome : 0
     });
-  }, [baseCost, deliveryCost, taxRate, profitMargin, reinvestmentRate]);
+  }, [baseCostStr, deliveryCostStr, taxRateStr, profitMarginStr, reinvestmentRate]);
 
   return (
     <div className="pb-24 pt-4 px-4">
@@ -98,10 +91,11 @@ export const FinancialCalculator: React.FC = () => {
                   <span className="absolute left-3 top-3 text-slate-500">$</span>
                   <input
                     type="number"
-                    value={baseCost}
-                    onChange={(e) => setBaseCost(Number(e.target.value))}
+                    value={baseCostStr}
+                    onChange={(e) => setBaseCostStr(e.target.value)}
                     className="w-full bg-background border border-slate-700 rounded-lg p-3 pl-7 text-white focus:border-primary focus:outline-none"
                     placeholder="0.00"
+                    min="0"
                   />
                 </div>
               </div>
@@ -111,10 +105,11 @@ export const FinancialCalculator: React.FC = () => {
                   <span className="absolute left-3 top-3 text-slate-500"><Truck size={14}/></span>
                   <input
                     type="number"
-                    value={deliveryCost}
-                    onChange={(e) => setDeliveryCost(Number(e.target.value))}
+                    value={deliveryCostStr}
+                    onChange={(e) => setDeliveryCostStr(e.target.value)}
                     className="w-full bg-background border border-slate-700 rounded-lg p-3 pl-8 text-white focus:border-primary focus:outline-none"
                     placeholder="0.00"
+                    min="0"
                   />
                 </div>
               </div>
@@ -127,9 +122,10 @@ export const FinancialCalculator: React.FC = () => {
                   <span className="absolute right-3 top-3 text-slate-500"><Percent size={14}/></span>
                   <input
                     type="number"
-                    value={taxRate}
-                    onChange={(e) => setTaxRate(Number(e.target.value))}
+                    value={taxRateStr}
+                    onChange={(e) => setTaxRateStr(e.target.value)}
                     className="w-full bg-background border border-slate-700 rounded-lg p-3 text-white focus:border-primary focus:outline-none"
+                    min="0"
                   />
                 </div>
               </div>
@@ -139,9 +135,10 @@ export const FinancialCalculator: React.FC = () => {
                   <span className="absolute right-3 top-3 text-slate-500"><TrendingUp size={14}/></span>
                   <input
                     type="number"
-                    value={profitMargin}
-                    onChange={(e) => setProfitMargin(Number(e.target.value))}
+                    value={profitMarginStr}
+                    onChange={(e) => setProfitMarginStr(e.target.value)}
                     className="w-full bg-background border border-slate-700 rounded-lg p-3 text-white focus:border-primary focus:outline-none"
+                    min="0"
                   />
                 </div>
               </div>
@@ -156,10 +153,10 @@ export const FinancialCalculator: React.FC = () => {
           <h2 className="text-4xl font-bold text-white mb-2">
             R$ {results.finalPrice.toFixed(2)}
           </h2>
-          <div className="flex justify-center items-center space-x-4 text-xs text-indigo-100 mt-2 bg-black/20 py-2 rounded-full px-4 inline-flex mx-auto">
-             <span>Custo: R$ {results.totalCost.toFixed(2)}</span>
-             <span>•</span>
-             <span>Imposto: R$ {results.taxAmount.toFixed(2)}</span>
+          <div className="flex justify-center items-center space-x-2 text-xs text-indigo-100 mt-2 bg-black/20 py-2 rounded-full px-4 inline-flex mx-auto flex-wrap">
+             <span className="whitespace-nowrap">Custo Total: R$ {results.totalCost.toFixed(2)}</span>
+             <span className="hidden sm:inline">•</span>
+             <span className="whitespace-nowrap">Imposto: R$ {results.taxAmount.toFixed(2)}</span>
           </div>
         </div>
 
